@@ -1,0 +1,28 @@
+#!/usr/bin/python
+# PYTHON_ARGCOMPLETE_OK
+
+import sys
+import json
+import argparse
+import argcomplete
+
+from asd.json_browser import JSONBrowser
+
+parser = argparse.ArgumentParser()
+
+tools = [
+    JSONBrowser(),
+]
+
+name2tool = {}
+
+subparser = parser.add_subparsers(dest = 'command')
+
+for tool in tools:
+    name2tool[tool.name] = tool
+    tool.register(subparser.add_parser(tool.name, help = tool.__doc__.strip()))
+
+argcomplete.autocomplete(parser)
+args = parser.parse_args()
+
+name2tool[args.command].process(args)
