@@ -1,12 +1,24 @@
 #!/usr/bin/python
 # PYTHON_ARGCOMPLETE_OK
 
+import os
 import sys
 import json
 import argparse
 import argcomplete
+import logging
 
 from asd.json_browser import JSONBrowser
+
+# debug flag taken from environment due logging from bash completion handlers
+debug = '_ASD_DEBUG' in os.environ
+
+if debug:
+    logger_handler = logging.FileHandler('asd.log')
+    logger_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logging.root.addHandler(logger_handler)
+    logging.root.setLevel(logging.DEBUG)
+    logging.raiseExceptions = True
 
 parser = argparse.ArgumentParser()
 
