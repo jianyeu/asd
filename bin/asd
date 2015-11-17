@@ -8,6 +8,7 @@ import argparse
 import argcomplete
 import logging
 
+from asd.custom_completion_finder import custom_auto_complete
 from asd.json_browser import JSONBrowser
 
 # debug flag taken from environment due logging from bash completion handlers
@@ -34,7 +35,7 @@ for tool in tools:
     name2tool[tool.name] = tool
     tool.register(subparser.add_parser(tool.name, help = tool.__doc__.strip()))
 
-argcomplete.autocomplete(parser)
+custom_auto_complete(parser)
 args = parser.parse_args()
 
 name2tool[args.command].process(args)
