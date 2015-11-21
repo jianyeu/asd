@@ -17,10 +17,8 @@ def is_cont(val):
     return type(val) is dict or type(val) is list
 
 class JSONBrowser(ToolBase):
-    """
-    Browse json encoded data by keys.
-    """
     name = 'json'
+    desc = 'Browse json encoded data by keys.'
 
     def register(self, parser):
         parser.add_argument('infile', nargs = '?', type = argparse.FileType('r'), default = sys.stdin)
