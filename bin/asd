@@ -10,6 +10,7 @@ import logging
 
 from asd.custom_completion_finder import custom_auto_complete
 from asd.json_browser import JSONBrowser
+from asd.register import Register
 from asd.tool import ToolHelper
 from asd import config, system_config
 
@@ -31,6 +32,7 @@ parser = argparse.ArgumentParser()
 
 tools = [
     JSONBrowser(),
+    Register(),
 ]
 
 if 'external_tools' in system_config_data:
