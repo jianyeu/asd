@@ -7,6 +7,7 @@ import json
 import argparse
 import argcomplete
 import logging
+from vcp.colors import Colors
 
 from asd.custom_completion_finder import custom_auto_complete
 from asd.json_browser import JSONBrowser
@@ -17,18 +18,42 @@ from asd import config, system_config
 user_config_data = config.load_config()
 system_config_data = system_config.load_config()
 
-# debug flag taken from environment due logging from bash completion handlers
-debug = '_ASD_DEBUG' in os.environ
-# TODO: logger config from app user_config_data
+class ColoredFormatter(logging.Formatter):
+    def format(self, record):
+        colors = {
+            logging.ERROR: Colors.red,
+            logging.WARNING: Colors.yellow,
+            logging.INFO: Colors.default,
+            logging.DEBUG: Colors.cyan
+        }
 
-if debug:
+        if record.levelno == logging.DEBUG:
+            msg = '%s - %s:%s: ' % (datetime.now(), record.name, record.lineno)
+            msg += Colors.default + record.getMessage()
+        else:
+            msg = record.getMessage()
+
+        return colors.get(record.levelno, Colors.default) + msg + Colors.default
+
+# debug flag taken from environment due logging from bash completion handlers
+# TODO: logger config from app user_config_data
+if '_ASD_DEBUG' in os.environ:
     logger_handler = logging.FileHandler('asd.log')
-    logger_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s:%(lineno)s - %(levelname)s - %(message)s'))
     logging.root.addHandler(logger_handler)
     logging.root.setLevel(logging.DEBUG)
     logging.raiseExceptions = True
+else:
+    logger_handler = logging.StreamHandler(sys.stdout)
+    logger_handler.setFormatter(ColoredFormatter())
+    logging.root.addHandler(logger_handler)
+    # the generic argument parser is not ready at this time, but logging info must be set here
+    logging.root.setLevel(logging.DEBUG if '--debug' in sys.argv else logging.INFO)
+    logging.raiseExceptions = True
 
 parser = argparse.ArgumentParser()
+
+parser.add_argument('--debug', action = 'store_true')
 
 tools = [
     JSONBrowser(),

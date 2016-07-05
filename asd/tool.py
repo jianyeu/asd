@@ -51,7 +51,12 @@ class ToolHelper():
         tools = []
         for name in system_config:
             for type in ToolHelper._get_tool_classes(name):
-                cfg = system_config[name][type.name]
+                try:
+                    cfg = system_config[name][type.name]
+                except KeyError as e:
+                    import json
+                    print("system_config: {}, name: {}, type.name: {}".format(json.dumps(system_config, indent = 2), name, type.name))
+                    raise
                 if name in user_config and type.name in user_config[name]:
                     cfg = user_config[name][type.name]
                 if cfg['enabled']:
