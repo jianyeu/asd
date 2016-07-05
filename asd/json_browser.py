@@ -2,6 +2,8 @@ import sys
 import json
 import argparse
 import logging
+from abc import ABCMeta, abstractmethod
+from collections import OrderedDict
 
 from .tool import ToolBase
 
@@ -16,6 +18,54 @@ class InvalidListIndexException(PathSearchException):
 def is_cont(val):
     return type(val) is dict or type(val) is list
 
+class FormatterFactory(object):
+    types = {}
+    @classmethod
+    def register(cls, name):
+        def decorator(formatter_cls):
+            cls.types[name] = formatter_cls
+            return formatter_cls
+        return decorator
+
+    def create(self, type_name):
+        return self.types[type_name]()
+
+class Formatter(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def format(self, data):
+        pass
+
+@FormatterFactory.register('json')
+class JSONFormatter(Formatter):
+
+    def __init__(self):
+        self.indent = 4
+
+    def format(self, data):
+        return json.dumps(data, indent = self.indent)
+
+@FormatterFactory.register('plain')
+class PlainFormatter(Formatter):
+
+    def __format(self, data, indent = 0):
+        if not hasattr(data, '__iter__'):
+            return indent * ' ' + str(data)
+        res = ''
+        if isinstance(data, list):
+            for item in data:
+                res += self.__format(item, indent) + '\n'
+        elif isinstance(data, dict):
+            res += 'TODO'
+            pass
+
+        return res.strip('\n')
+
+    def format(self, data):
+        return self.__format(data)
+
+
 class JSONBrowser(ToolBase):
     name = 'json'
     desc = 'Browse json encoded data by keys.'
@@ -24,6 +74,7 @@ class JSONBrowser(ToolBase):
         parser.add_argument('infile', nargs = '?', type = argparse.FileType('r'), default = sys.stdin)
         path_action = parser.add_argument('-p', '--path', help = 'path to sub values', default = '')
         parser.add_argument('-k', '--key_list', action = 'store_true')
+        parser.add_argument('-f', '--format', choices = FormatterFactory.types.keys(), default = 'json')
 
         path_action.completer = self.get_path_options
         path_action.quoter = self.format_path_options
@@ -104,19 +155,21 @@ class JSONBrowser(ToolBase):
         return self.get_sub_value(data[key], path_array)
 
     def process(self, args):
+        factory = FormatterFactory()
+        formatter = factory.create(args.format)
         try:
-            data = json.load(args.infile)
+            data = json.load(args.infile, object_pairs_hook = OrderedDict)
             sub_value = self.get_sub_value(data, args.path.split('.'))
             if is_cont(sub_value):
                 if args.key_list:
                     if type(sub_value) is dict:
-                        print json.dumps(sub_value.keys(), indent = 4)
+                        print formatter.format(sub_value.keys())
                     else:
-                        print range(len(sub_value))
+                        print formatter.format(range(len(sub_value)))
                 else:
-                    print json.dumps(sub_value, indent = 4)
+                    print formatter.format(sub_value)
             else:
-                print sub_value
+                print formatter.format(sub_value)
 
         except ValueError as e:
             print 'Could not decode json: %s' % e
@@ -124,5 +177,3 @@ class JSONBrowser(ToolBase):
             print 'Invalid list index: "%s"' % args.path
         except PathSearchException as e:
             print 'Could not find the specified path: "%s"' % args.path
-
-
