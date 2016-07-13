@@ -9,7 +9,7 @@ setup(
     url = 'https://github.com/voidpp/asd.git',
     install_requires = [
         "argcomplete==1.0.0",
-        "voidpp-tools>=1.1.1",
+        "voidpp-tools>=1.5.4",
     ],
     scripts = [
         'bin/asd',
