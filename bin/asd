@@ -21,12 +21,18 @@ system_config_data = system_config.load_config()
 debug = '_ASD_DEBUG' in os.environ
 # TODO: logger config from app user_config_data
 
+logger = logging.root
+
 if debug:
     logger_handler = logging.FileHandler('asd.log')
     logger_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    logging.root.addHandler(logger_handler)
-    logging.root.setLevel(logging.DEBUG)
-    logging.raiseExceptions = True
+    logger.addHandler(logger_handler)
+    logger.setLevel(logging.DEBUG)
+
+logger_handler_info = logging.StreamHandler(sys.stdout)
+logger_handler_info.setFormatter(logging.Formatter('%(message)s'))
+logger.addHandler(logger_handler_info)
+logger.setLevel(logging.INFO)
 
 parser = argparse.ArgumentParser()
 
