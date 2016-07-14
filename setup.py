@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name = "asd",
     description = "Various command line helper scripts`",
-    version = "1.3.0",
+    version = "1.3.1",
     author = 'Lajos Santa',
     author_email = 'santa.lajos@coldline.hu',
     url = 'https://github.com/voidpp/asd.git',

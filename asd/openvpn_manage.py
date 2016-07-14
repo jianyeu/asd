@@ -108,10 +108,10 @@ class OpenVPNManager(ToolBase):
         return missing_files
 
     def __generate_client_keys(self, name):
-        command = ['bash', '-c', 'source vars && ./pkitool {}'.format(args.username)]
+        command = ['bash', '-c', 'source vars && ./pkitool {}'.format(name)]
 
         try:
-            logger.info(check_output(command, stdout = PIPE, stderr = PIPE))
+            logger.info(check_output(command, stderr = PIPE))
             return True
         except CalledProcessError as e:
             logger.exception(e)
