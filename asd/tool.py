@@ -2,8 +2,11 @@
 import sys
 import inspect
 import importlib
+import logging
 from abc import ABCMeta, abstractmethod
 from .system_config import load_config, save_config
+
+logger = logging.getLogger(__name__)
 
 class ToolBase(object):
     __metaclass__ = ABCMeta
@@ -49,11 +52,19 @@ class ToolHelper():
     @staticmethod
     def load_external_tools(system_config, user_config):
         tools = []
+        undefined_tools = []
         for name in system_config:
             for type in ToolHelper._get_tool_classes(name):
-                cfg = system_config[name][type.name]
+                cfg = system_config[name].get(type.name)
+                if cfg is None and name not in undefined_tools:
+                    undefined_tools.append(name)
+                    continue
                 if name in user_config and type.name in user_config[name]:
                     cfg = user_config[name][type.name]
                 if cfg['enabled']:
                     tools.append(type(cfg['config']))
+
+        if len(undefined_tools):
+            logger.error("There are undefined tool(s) in these package(s): %s. Exec 'asd register <package_name>' with the necessary permission.", ', '.join(undefined_tools))
+
         return tools
